@@ -52,6 +52,17 @@ RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
+
+
+# Assurez-vous que DEBUG est désactivé en production
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+
+# Configurez les paramètres de sécurité
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
 # Application definition
 
 INSTALLED_APPS = [
