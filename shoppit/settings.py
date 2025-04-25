@@ -42,9 +42,7 @@ SECRET_KEY = 'django-insecure-c#p(gg_%*6y(-7x-(-q^d&-&c)3u_af6qyx_im72!e$@vja&2q
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'blatoyao.onrender.com',
-    'localhost',
-    '127.0.0.1',
+    '*'
 ]
 
 # Autorise également le host généré par Render
