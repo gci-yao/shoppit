@@ -44,10 +44,10 @@ DEBUG = True
 
 # Configuration de base
 ALLOWED_HOSTS = [
-    'blatoyao.onrender.com',  # Votre domaine principal
-    'localhost',
-    '127.0.0.1',
-    '.onrender.com',  # Autorise tous les sous-domaines Render
+    "blatoyao.onrender.com",  # Votre domaine principal
+    "localhost",
+    "127.0.0.1"
+      
 ]
 
 # Configuration dynamique pour Render
@@ -165,10 +165,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = '/static/'
-
+STATIC_URL = 'static/'
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
 STATIC_ROOT = BASE_DIR / "staticfiles"
 # pour les images photos
 MEDIA_URL = 'img/'
