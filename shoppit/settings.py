@@ -165,14 +165,19 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+# settings.py
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# Fichiers statiques (CSS, JS)
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Pour collectstatic
+STATICFILES_DIRS = []  # Vide car vous n'avez pas de dossier static/
 
-STATIC_ROOT = BASE_DIR / "staticfiles"
-# pour les images photos
-MEDIA_URL = 'img/'
-MEDIA_ROOT = BASE_DIR/"media"
+# Fichiers médias (images uploadées)
+MEDIA_URL = '/media/'  # Important: / au début et à la fin
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Correspond à votre dossier media/
+
+# Configuration Whitenoise
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # Default primary key field type
