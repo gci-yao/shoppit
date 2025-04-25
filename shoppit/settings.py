@@ -46,8 +46,8 @@ DEBUG = True
 ALLOWED_HOSTS = [
     "blatoyao.onrender.com",  # Votre domaine principal
     "localhost",
-    "127.0.0.1"
-      
+    "127.0.0.1",
+    ".onrender.com",  # Autorise tous les sous-domaines Render
 ]
 
 # Configuration dynamique pour Render
