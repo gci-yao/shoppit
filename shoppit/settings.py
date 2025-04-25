@@ -88,9 +88,9 @@ CORS_ALLOWED_ORIGINS = [
 ] 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware', #ce lien aussi a ajouter en 1er !
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware', #ce lien aussi a ajouter en 1er !
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
