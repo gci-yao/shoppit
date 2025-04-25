@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
-set -o errexit
-
-# Crée les dossiers nécessaires (au cas où)
-mkdir -p media/img
-mkdir -p media/products
-
+set -o errexit  #exit on error
 pip install --upgrade pip
-pip install -r requirements.txt
 
-python manage.py collectstatic --noinput  # Même sans static files
+pip install -r requirements.txt
+python manage.py collectstatic --no-input
 python manage.py migrate
+
+
