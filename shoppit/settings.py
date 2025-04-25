@@ -12,8 +12,24 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 
+from datetime import timedelta
+
+
+# --------------deploy-------------
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+
+
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -50,8 +66,9 @@ CORS_ALLOWED_ORIGINS = [
 ] 
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware', #ce lien aussi a ajouter en 1er !
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware', #ce lien aussi a ajouter en 1er !
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -128,6 +145,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
 # pour les images photos
 MEDIA_URL = 'img/'
 MEDIA_ROOT = BASE_DIR/"media"
@@ -137,3 +157,29 @@ MEDIA_ROOT = BASE_DIR/"media"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'core.CustomUser'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+}
+
+# payment
+
+FLUTTERWAVE_SECRET_KEY = "FLWSECK_TEST-c2b389002102e675794116e4dde185bd-X"
+
+
+# -----------------------------------
+PAYPAL_CLIENT_ID = 'AZvhTGGCzMJ9q_k6QYcfeGPpPsm3fGjy0FBO_8W3wyPvJG9IP73QGQ50_Rwv5F3Dc-rpQ06DqCzmVrcl'
+PAYPAL_CLIENT_SECRET = 'ELh3HT5SdkLxTKymqEhzDLgweQQn_Cr4SXNwur5IirMcF8iA4EqJNuOQykMTBkA8sT_agbDlopkoecdm'
+PAYPAL_MODE = 'sandbox'  # 'live' en production
+
+REACT_BASE_URL =os.getenv("REACT_BASE_URL", "http://localhost:5173/")
+
+
