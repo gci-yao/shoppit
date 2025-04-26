@@ -69,6 +69,7 @@ if not DEBUG:
 
 INSTALLED_APPS = [
     
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -78,13 +79,13 @@ INSTALLED_APPS = [
     'core',
     'shop_app',
     'rest_framework',
-    'corsheaders',
 ]
 # pip install django-cors-headers
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://blaato.onrender.com"
+    "https://blaato.onrender.com",
+    "https://bafa.onrender.com",
 ] 
 
 MIDDLEWARE = [
