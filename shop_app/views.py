@@ -5,7 +5,7 @@ from .serializers import ProductSerializer, DetaileProductSerializer, CartItemSe
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-
+from django.http import HttpResponse
 
 # payment 
 from decimal import Decimal
@@ -26,6 +26,9 @@ paypalrestsdk.configure({
 
 
 
+
+def home(request):
+    return HttpResponse("Bienvenue sur Bafa !")
 
 @api_view(["GET"])
 def products(request):
