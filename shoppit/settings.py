@@ -44,7 +44,7 @@ DEBUG = True
 
 # Configuration de base
 ALLOWED_HOSTS = [
-    "blatoyao.onrender.com",  # Votre domaine principal
+    "blaatoyao.onrender.com",  # Votre domaine principal
     "localhost",
     "127.0.0.1",
     ".onrender.com",  # Autorise tous les sous-domaines Render
