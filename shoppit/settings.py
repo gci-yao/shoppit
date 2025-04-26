@@ -75,7 +75,7 @@ INSTALLED_APPS = [
 ]
 # pip install django-cors-headers
 CORS_ALLOWED_ORIGINS = [
-    "https://blaato.onrender.com",
+    # "https://blaato.onrender.com",
     "https://bafa.onrender.com",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
