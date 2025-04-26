@@ -75,11 +75,40 @@ INSTALLED_APPS = [
 ]
 # pip install django-cors-headers
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
     "https://blaato.onrender.com",
     "https://bafa.onrender.com",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ] 
+
+
+# Autorisez les méthodes et en-têtes nécessaires
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+
+
+
+
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware', #ce lien aussi a ajouter en 1er !
