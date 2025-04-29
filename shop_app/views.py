@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from .models import Product, Cart, CartItem, Transaction
 from .serializers import ProductSerializer, DetaileProductSerializer, CartItemSerializer, SimpleCartSerializer, CartSerializer, UserSerializer
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated
 from django.http import HttpResponse
 
@@ -121,12 +121,24 @@ def get_username(request):
     return Response({"username": user.username})
 
 
-@api_view(["GET"])
+@api_view(["GET", "PATCH"])
 @permission_classes([IsAuthenticated])
 def user_info(request):
     user = request.user
-    serializer = UserSerializer(user)
-    return Response(serializer.data)
+
+    if request.method == "GET":
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+    elif request.method == "PATCH":
+        serializer = UserSerializer(user, data=request.data, partial=True)  # partial=True pour autoriser mise à jour partielle
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+
+
 
 
 @api_view(["POST"])
