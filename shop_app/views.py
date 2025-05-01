@@ -351,3 +351,196 @@ def paypal_payment_callback(request):
         return Response({'message':'Payment successful', 'subMessage':'You have successfully made payment for the items you purchased'})
     else:
         return Response({'error':'Invalid payment details'}, status=400)
+
+
+
+
+
+@api_view(["POST"])
+def initiate_paydunya_payment(request):
+    
+    try:
+        user = request.user
+        cart_code = request.data.get("cart_code")
+        cart = Cart.objects.get(cart_code=cart_code)
+
+        amount = sum([item.quantity * item.product.price for item in cart.items.all()])
+        tax = Decimal("200.00")
+        total_amount = float(amount + tax)
+        tx_ref = str(uuid.uuid4())
+
+        # Création de la transaction
+        Transaction.objects.create(
+            ref=tx_ref,
+            cart=cart,
+            user=user,
+            amount=total_amount,
+            status="pending",
+            currency="XOF"
+        )
+
+        headers = {
+            "Authorization":f"Bearer {settings.PAYDUNYA_PRIVATE_KEY}",
+            "Content-Type": "application/json",
+            "PAYDUNYA-MASTER-KEY": settings.PAYDUNYA_MASTER_KEY,
+            "PAYDUNYA-PRIVATE-KEY": settings.PAYDUNYA_PRIVATE_KEY,
+            "PAYDUNYA-TOKEN": settings.PAYDUNYA_TOKEN
+        }
+
+        payload = {
+            "invoice": {
+                "items": [
+                    {
+                        "name": "Achat Shoppit",
+                        "quantity": 1,
+                        "unit_price": total_amount,
+                        "total_price": total_amount,
+                        "description": "Paiement panier Bafa from charles"
+                    }
+                ],
+                "total_amount": total_amount,
+                "description": "Paiement sur bafa Shoppit"
+            },
+            "store": {
+                "name": "Bafa shoppit",
+                "tagline": "Votre boutique en ligne"
+            },
+            "actions": {
+                "cancel_url": f"{settings.REACT_BASE_URL}payment-status?paymentStatus=cancel",
+                "return_url": f"{settings.REACT_BASE_URL}payment-status?paymentStatus=success&ref={tx_ref}",
+                "callback_url": f"{settings.REACT_BASE_URL}payment-status"
+            }
+        }
+
+        response = requests.post(
+            "https://app.paydunya.com/api/v1/checkout-invoice/create",
+            json=payload,
+            headers=headers
+        )
+
+        response_data = response.json()
+
+        # Vérification de la réponse
+        if response.status_code == 200 and response_data.get("status") == "success":
+            return Response({
+                "payment_url": response_data.get("checkout_url"),
+                
+                "message": "Payment initiated successfully"
+            })
+        else:
+            # Journalisation de l'erreur pour le débogage
+            print("PayDunya API Error:", response_data)
+            return Response({
+                "error": response_data.get("response_text", "Payment initiation failed"),
+                "details": response_data
+            }, status=response.status_code)
+
+    except Cart.DoesNotExist:
+        return Response({"error": "Cart not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        # Journalisation de l'exception pour le débogage
+        print("Exception in initiate_paydunya_payment:", str(e))
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+
+@api_view(["GET", "POST"])
+def paydunya_payment_callback(request):
+    """
+    Gère le callback de PayDunya après un paiement
+    Accepte à la fois GET (pour les redirections) et POST (pour les callbacks IPN)
+    """
+    try:
+        # Récupération des paramètres selon la méthode
+        if request.method == 'GET':
+            data = request.query_params
+            payment_status = data.get("payment_status")
+            tx_ref = data.get("tx_ref")
+        else:  # POST
+            data = request.data
+            payment_status = data.get("status")  # PayDunya utilise 'status' dans les callbacks IPN
+            tx_ref = data.get("invoice", {}).get("token")  # Le token fait office de référence
+
+        # Journalisation pour débogage
+        print(f"PayDunya Callback Data: {data}")
+
+        if not tx_ref:
+            return Response(
+                {"error": "Transaction reference is missing"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Récupération de la transaction
+        try:
+            transaction = Transaction.objects.get(ref=tx_ref)
+        except Transaction.DoesNotExist:
+            return Response(
+                {"error": "Transaction not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Vérification que la transaction n'est pas déjà complétée
+        if transaction.status == "completed":
+            return Response(
+                {"message": "Payment already processed"},
+                status=status.HTTP_200_OK
+            )
+
+        # Vérification du statut avec l'API PayDunya
+        headers = {
+            "PAYDUNYA-MASTER-KEY": settings.PAYDUNYA_MASTER_KEY,
+            "PAYDUNYA-PRIVATE-KEY": settings.PAYDUNYA_PRIVATE_KEY,
+            "PAYDUNYA-TOKEN": settings.PAYDUNYA_TOKEN
+        }
+
+        # Requête de vérification à PayDunya
+        verify_response = requests.get(
+            f"https://app.paydunya.com/api/v1/checkout-invoice/confirm/{tx_ref}",
+            headers=headers
+        )
+
+        verify_data = verify_response.json()
+
+        # Journalisation pour débogage
+        print(f"PayDunya Verification Response: {verify_data}")
+
+        # Traitement selon le statut
+        if verify_data.get("status") == "completed":
+            # Paiement réussi
+            transaction.status = "completed"
+            transaction.save()
+
+            cart = transaction.cart
+            cart.paid = True
+            cart.save()
+
+            return Response(
+                {
+                    "message": "Payment successful",
+                    "transaction_ref": tx_ref,
+                    "amount": transaction.amount
+                },
+                status=status.HTTP_200_OK
+            )
+        else:
+            # Paiement échoué
+            transaction.status = "failed"
+            transaction.save()
+
+            return Response(
+                {
+                    "error": "Payment failed or not confirmed",
+                    "details": verify_data
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    except Exception as e:
+        # Journalisation de l'erreur
+        print(f"Error in PayDunya callback: {str(e)}")
+        return Response(
+            {"error": "Internal server error", "details": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

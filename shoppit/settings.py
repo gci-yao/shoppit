@@ -75,6 +75,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://bafa.onrender.com",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://127.0.0.1:8001"
 ] 
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
@@ -88,11 +89,11 @@ CORS_ALLOW_CREDENTIALS = True
 
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware', #ce lien aussi a ajouter en 1er !
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -202,6 +203,22 @@ PAYPAL_CLIENT_ID = 'AZvhTGGCzMJ9q_k6QYcfeGPpPsm3fGjy0FBO_8W3wyPvJG9IP73QGQ50_Rwv
 PAYPAL_CLIENT_SECRET = 'ELh3HT5SdkLxTKymqEhzDLgweQQn_Cr4SXNwur5IirMcF8iA4EqJNuOQykMTBkA8sT_agbDlopkoecdm'
 PAYPAL_MODE = 'sandbox'  # 'live' en production
 
+
+
+
+
 REACT_BASE_URL =os.getenv("REACT_BASE_URL", "http://localhost:5173/")
+PAYDUNYA_MODE = "test"
+PAYDUNYA_CALLBACK_URL = f"{REACT_BASE_URL}/payment-status/"
+# PAYDUNYA_MASTER_KEY = "4gZ4CvRz-eBuF-Wa8I-CRCy-xu9Yzf2Y5FFA"
+# PAYDUNYA_PRIVATE_KEY = "test_private_85htEdDMFc4dG2Zp6EWRiOlI95L"
+# PAYDUNYA_PUBLIC_KEY = "test_public_Hzj024u675ZlO0ZFmXluty6CHOg"
+# PAYDUNYA_TOKEN = "cOcqaQ9HWIK6DhY1e5p2"
 
 
+# PayDunya settings
+PAYDUNYA_MODE = "test"  # ou "live" en production
+PAYDUNYA_MASTER_KEY = "4gZ4CvRz-eBuF-Wa8I-CRCy-xu9Yzf2Y5FFA"
+PAYDUNYA_PRIVATE_KEY = "live_private_xlZrb0GbmwCZTaCe8DolfNs3g7T"
+PAYDUNYA_TOKEN = "TPzZK8uopIKARKspE0qp"
+YOUR_BACKEND_DOMAIN ="http://localhost:5173/payment-status"
