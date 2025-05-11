@@ -14,6 +14,7 @@ from pathlib import Path
 
 from datetime import timedelta
 
+from decouple import config
 
 # --------------deploy-------------
 
@@ -217,8 +218,23 @@ PAYDUNYA_CALLBACK_URL = f"{REACT_BASE_URL}/payment-status/"
 
 
 # PayDunya settings
-PAYDUNYA_MODE = "test"  # ou "live" en production
+PAYDUNYA_MODE = "live"  # ou "live" en production
 PAYDUNYA_MASTER_KEY = "4gZ4CvRz-eBuF-Wa8I-CRCy-xu9Yzf2Y5FFA"
 PAYDUNYA_PRIVATE_KEY = "live_private_xlZrb0GbmwCZTaCe8DolfNs3g7T"
 PAYDUNYA_TOKEN = "TPzZK8uopIKARKspE0qp"
 YOUR_BACKEND_DOMAIN ="http://localhost:5173/payment-status"
+
+
+import os
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Par exemple, pour Gmail
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'charlesyao1602@gmail.com')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # Doit être défini dans .env
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+FRONTEND_URL = 'https://bafa.onrender.com'
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
