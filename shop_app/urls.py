@@ -19,5 +19,8 @@ urlpatterns = [
     path("paypal_payment_callback/",views.paypal_payment_callback, name="paypal_payment_callback"),
     path('initiate_paydunya_payment/', views.initiate_paydunya_payment, name="initiate_paydunya_payment"),
     path('paydunya_webhook/', views.paydunya_webhook, name='paydunya_webhook'),
+    path("wave/webhook/", views.wave_webhook, name="wave_webhook"),
+    path("test_pdf/",views.test_pdf, name="test_pdf"),
+    path("download_invoice/", views.download_invoice, name="download_invoice")
 
 ]

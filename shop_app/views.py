@@ -5,15 +5,29 @@ from .serializers import ProductSerializer, DetaileProductSerializer, CartItemSe
 from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse, FileResponse
 from django.core.mail import send_mail
 import logging
 
 # payment 
+
+from django.views.decorators.csrf import csrf_exempt
+
+import json
+from django.core.mail import EmailMessage
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from django.conf import settings
 from decimal import Decimal
+from django.template.loader import render_to_string
+from io import BytesIO
+from xhtml2pdf import pisa  # pip install xhtml2pdf
 import uuid
-from django.conf import settings 
 import requests
+from django.template.loader import get_template
+
+import io
+
 import paypalrestsdk
 
 BASE_URL = settings.REACT_BASE_URL
@@ -25,6 +39,108 @@ paypalrestsdk.configure({
     "client_id":settings.PAYPAL_CLIENT_ID,
     "client_secret":settings.PAYPAL_CLIENT_SECRET
 })
+
+
+def generate_invoice_pdf(cart):
+    template = get_template('invoice_template.html')
+
+    # Calcul du total du panier
+    total = sum(item.product.price * item.quantity for item in cart.items.all())
+
+    html = template.render({'cart': cart, 'total': total})
+    result = io.BytesIO()
+    pisa.pisaDocument(io.BytesIO(html.encode("UTF-8")), result)
+    return result
+
+def test_pdf(request):
+    cart = Cart.objects.get(cart_code="TEST1234")
+    pdf = generate_invoice_pdf(cart)
+    
+    return HttpResponse(pdf.getvalue(), content_type='application/pdf')
+
+
+
+@csrf_exempt
+def wave_webhook(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+
+            cart_code = data.get("cart_code")  # Transmis via motif de paiement
+            amount = Decimal(str(data.get("amount")))
+            status = data.get("status")
+            ref = data.get("ref")  # Référence de paiement unique
+
+            if not all([cart_code, amount, status, ref]):
+                return JsonResponse({"error": "Champs manquants"}, status=400)
+
+            try:
+                cart = Cart.objects.get(cart_code=cart_code)
+            except Cart.DoesNotExist:
+                return JsonResponse({"error": "Panier non trouvé"}, status=404)
+
+            total_cart_amount = sum(item.product.price * item.quantity for item in cart.items.all())
+
+            if amount != total_cart_amount:
+                # Email admin si le montant est incorrect
+                send_mail(
+                    subject="Paiement Wave incorrect",
+                    message=f"Un utilisateur a payé {amount} au lieu de {total_cart_amount} pour le panier {cart_code}.",
+                    from_email="charlesyao1602@gmail.com",
+                    recipient_list=["charlesyao1602@gmail.com"],
+                )
+                return JsonResponse({"message": "Montant incorrect. Paiement signalé."}, status=400)
+
+            # Montant OK → marquer comme payé
+            cart.paid = True
+            cart.save()
+
+            Transaction.objects.create(
+                ref=ref,
+                cart=cart,
+                amount=amount,
+                status="completed",
+                user=cart.user
+            )
+
+            # Génération de la facture PDF
+            pdf_file = generate_invoice_pdf(cart)
+
+            # Envoi email avec PDF
+            if cart.user and cart.user.email:
+                email = EmailMessage(
+                    subject="Votre facture Bafa Shoppit",
+                    body="Merci pour votre achat ! Veuillez télécharger votre facture ci-jointe. Livraison sous 48h.",
+                    from_email="charlesyao1602@gmail.com",
+                    to=[cart.user.email]
+                )
+                email.attach(f"facture_{cart_code}.pdf", pdf_file.getvalue(), "application/pdf")
+                email.send()
+
+            return JsonResponse({"status": "Paiement reçu et validé"}, status=200)
+
+        except Exception as e:
+            logger.exception("Erreur webhook Wave")
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Méthode non autorisée"}, status=405)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def download_invoice(request, cart_code):
+    try:
+        cart = Cart.objects.get(cart_code=cart_code, user=request.user, paid=True)
+        pdf = generate_invoice_pdf(cart)
+        return FileResponse(BytesIO(pdf.getvalue()), as_attachment=True, filename=f"facture_{cart_code}.pdf")
+    except Cart.DoesNotExist:
+        return Response({"error": "Facture introuvable"}, status=404)
+
+
+
+
+
+
 
 
 

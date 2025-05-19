@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 14px; }
+        h1 { text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Facture</h1>
+    <p><strong>Date :</strong> {{ cart.modified_at|date:"d/m/Y H:i" }}</p>
+    <p><strong>Code Panier :</strong> {{ cart.cart_code }}</p>
+    <p><strong>Client :</strong> {{ cart.user.username }} ({{ cart.user.email }})</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Produit</th>
+                <th>Quantité</th>
+                <th>Prix unitaire</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cart.items.all %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.product.price }} XOF</td>
+                <td>{{ item.quantity|floatformat:2|add:""|floatformat:2|floatformat:2|stringformat:"s"|floatformat:2|stringformat:"s"|add:""|floatformat:2 }} XOF</td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p style="text-align: right; margin-top: 20px;">
+    <strong>Total à payer :</strong>
+    {{ total|floatformat:2 }} XOF
+</p>
+
+</body>
+</html>

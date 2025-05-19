@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ["id","name","slug","image", "description","category","price"]
+        fields = ["id","name","slug","image", "description","category","price","comments"]
 
 
 
@@ -14,7 +14,7 @@ class DetaileProductSerializer(serializers.ModelSerializer):
     similar_products = serializers.SerializerMethodField()
     class Meta:
         model = Product
-        fields = ["id","name","slug","image", "description","price","similar_products"]
+        fields = ["id","name","slug","image", "description","price","similar_products","comments"]
     
     def get_similar_products(self, product):
         products = Product.objects.filter(category=product.category).exclude(id=product.id)

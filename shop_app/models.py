@@ -14,6 +14,7 @@ class Product(models.Model):
     description= models.TextField(blank=1,null=1)
     price= models.DecimalField(max_digits=10, decimal_places=2)
     category= models.CharField(max_length=15,choices=CATEGORY,blank=1,null=1)
+    comments = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
